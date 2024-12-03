@@ -1,6 +1,9 @@
 package tetris;
 
 import javax.swing.JFrame;
+import tetris.controller.TetrisEngine;
+import tetris.model.TetrisGrid;
+import tetris.view.TetrisView;
 
 public class TetrisGame {
 
