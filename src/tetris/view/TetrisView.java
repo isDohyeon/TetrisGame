@@ -5,23 +5,32 @@ import java.awt.Dimension;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import javax.swing.AbstractAction;
 import javax.swing.JPanel;
+import javax.swing.KeyStroke;
 
 public class TetrisView extends JPanel {
 
     private static final double GAME_SCORE_AREA_RATIO = 0.75;
     private static final Color DEFAULT_COLOR = Color.BLACK;
+    private static final int TETROMINO_GRID_SIZE = 4;
 
     private int tileSize;
     private int nextTetrominoTileSize;
     private Color[][] grid;
     private Color[][] nextTetrominoGrid;
-    private int gridWidth;
-    private int gridHeight;
+    private final int gridWidth;
+    private final int gridHeight;
     private int width;
     private int height;
     private int gameWidth;
     private int sideWidth;
+    private boolean gameOver;
+    private int lastCommand;
+    private long score;
 
     public TetrisView(int width, int height, int gridWidth, int gridHeight) {
         this.gridWidth = gridWidth;
@@ -29,7 +38,9 @@ public class TetrisView extends JPanel {
         initDimensions(width, height);
         initTileSize();
         revisitDimensions();
+        addKeyBindings();
         initView();
+        resetLastCommand();
         this.setPreferredSize(new Dimension(this.width, this.height));
     }
 
@@ -60,13 +71,19 @@ public class TetrisView extends JPanel {
 
     private void initView() {
         this.grid = new Color[gridHeight][gameWidth];
-        this.nextTetrominoGrid = new Color[4][4];
+        this.nextTetrominoGrid = new Color[TETROMINO_GRID_SIZE][TETROMINO_GRID_SIZE];
+        gameOver = false;
+        score = 0;
     }
 
     @Override
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
         Graphics2D g2d = (Graphics2D) g;
+        if (gameOver) {
+            drawFinalScreen(g2d);
+            return;
+        }
         drawGamerGrid(g2d);
         fillSidePanel(g2d);
         drawScore(g2d);
@@ -134,6 +151,20 @@ public class TetrisView extends JPanel {
         g2d.setPaint(DEFAULT_COLOR);
     }
 
+    private void drawFinalScreen(Graphics2D g2d) {
+        g2d.setColor(DEFAULT_COLOR);
+        g2d.fill(this.getBounds());
+        g2d.setFont(g2d.getFont().deriveFont(40f));
+        g2d.setColor(Color.RED);
+        FontMetrics metrics = g2d.getFontMetrics(g2d.getFont());
+        g2d.drawString("GAME OVER!", (width - metrics.stringWidth("GAME OVER!")) / 2, height / 2);
+        g2d.setFont(g2d.getFont().deriveFont(20f));
+        metrics = g2d.getFontMetrics(g2d.getFont());
+        String scoreString = "Score : " + score;
+        g2d.drawString(scoreString, (width - metrics.stringWidth(scoreString)) / 2,
+                (height / 2) + metrics.getHeight() * 2);
+    }
+
     public void updateGrid(Color[][] grid) {
         arrayCopy(grid, this.grid);
         this.repaint();
@@ -148,5 +179,45 @@ public class TetrisView extends JPanel {
     public void updateNextTetrominoGrid(Color[][] nextTetrominoGrid) {
         arrayCopy(nextTetrominoGrid, this.nextTetrominoGrid);
         this.repaint();
+    }
+
+    private void addKeyBinding(int keyCode, ActionListener actionListener) {
+        getInputMap().put(KeyStroke.getKeyStroke(keyCode, 0, false), String.valueOf(keyCode));
+        getActionMap().put(String.valueOf(keyCode), new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                actionListener.actionPerformed(e);
+            }
+        });
+    }
+
+    private void addKeyBindings() {
+        addKeyBinding(KeyEvent.VK_DOWN, e -> setLastCommand(KeyEvent.VK_DOWN));
+        addKeyBinding(KeyEvent.VK_LEFT, e -> setLastCommand(KeyEvent.VK_LEFT));
+        addKeyBinding(KeyEvent.VK_RIGHT, e -> setLastCommand(KeyEvent.VK_RIGHT));
+        addKeyBinding(KeyEvent.VK_UP, e -> setLastCommand(KeyEvent.VK_UP));
+    }
+
+    public void setScore(long score) {
+        this.score = score;
+    }
+
+    public void setGameOver() {
+        gameOver = true;
+        this.repaint();
+    }
+
+    private void setLastCommand(int command) {
+        lastCommand = command;
+    }
+
+    public int getLastCommand() {
+        int command = lastCommand;
+        resetLastCommand();
+        return command;
+    }
+
+    private void resetLastCommand() {
+        lastCommand = KeyEvent.VK_UNDEFINED;
     }
 }

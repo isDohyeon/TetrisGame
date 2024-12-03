@@ -15,8 +15,8 @@ public class TetrisGame {
     private TetrisGrid model;
     private TetrisView view;
     private JFrame jFrame;
-    private int width;
-    private int height;
+    private final int width;
+    private final int height;
 
     public TetrisGame(int width, int height) {
         this.width = width;
