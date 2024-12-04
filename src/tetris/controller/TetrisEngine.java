@@ -20,7 +20,6 @@ public class TetrisEngine implements Runnable {
 
     @Override
     public void run() {
-        boolean canMoveDown;
         boolean gameContinues = model.getNewTetromino();
         this.updateViewGrid();
         this.updateViewNextTetromino();
@@ -31,26 +30,37 @@ public class TetrisEngine implements Runnable {
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-
-            if (System.currentTimeMillis() - cycleStartTime >= 500) {
-                if (model.hasTetromino()) {
-                    canMoveDown = model.moveTetrominoDown();
-                    if (!canMoveDown) {
-                        this.placeTetromino();
-                    } else {
-                        freeFallIterations += 1;
-                    }
-                } else {
-                    gameContinues = model.getNewTetromino();
-                    updateViewNextTetromino();
-                }
-                this.updateViewGrid();
-                cycleStartTime = System.currentTimeMillis();
-            } else {
+            if (System.currentTimeMillis() - cycleStartTime < 500) {
                 userActionHandler();
+                continue;
             }
+            processTetrominoMovement();
+            gameContinues = isGameContinues(gameContinues);
+            this.updateViewGrid();
+            cycleStartTime = System.currentTimeMillis();
         }
         view.setGameOver();
+    }
+
+    private boolean isGameContinues(boolean gameContinues) {
+        if (!model.hasTetromino()) {
+            gameContinues = model.getNewTetromino();
+            updateViewNextTetromino();
+        }
+        return gameContinues;
+    }
+
+    private void processTetrominoMovement() {
+        boolean canMoveDown;
+        if (model.hasTetromino()) {
+            canMoveDown = model.moveTetrominoDown();
+            if (!canMoveDown) {
+                this.placeTetromino();
+            }
+            if (canMoveDown) {
+                freeFallIterations += 1;
+            }
+        }
     }
 
     private void updateViewGrid() {

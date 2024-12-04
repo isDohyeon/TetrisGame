@@ -127,7 +127,7 @@ public class TetrisView extends JPanel {
         g2d.setColor(new Color(255, 233, 0));
         FontMetrics metrics = g2d.getFontMetrics(g2d.getFont());
         g2d.drawString("SCORE : ", this.width - this.sideWidth + nextTetrominoTileSize, metrics.getHeight());
-        String scoreString = Long.toString(0);
+        String scoreString = Long.toString(this.score);
         g2d.drawString(scoreString, this.width - this.sideWidth + nextTetrominoTileSize, metrics.getHeight() * 2);
     }
 
